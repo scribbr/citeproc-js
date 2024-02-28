@@ -48,8 +48,8 @@ CSL.Node.names = {
 
             // Set/reset name blobs if they exist, for processing
             // by namesOutput()
-            for (var i = 0, ilen = 3; i < ilen; i += 1) {
-                var key = ["family", "given", "et-al"][i];
+            for (var i = 0, ilen = 4; i < ilen; i += 1) {
+                var key = ["family", "given", "et-al", "alternate"][i];
                 this[key] = state.build[key];
                 if (state.build.names_level === 1) {
                     state.build[key] = undefined;
@@ -108,8 +108,8 @@ CSL.Node.names = {
                 // after the term (possibly changed in cs:et-al) is known.
 
 
-                for (var i = 0, ilen = 3; i < ilen; i += 1) {
-                    var key = ["family", "given"][i];
+                for (var i = 0, ilen = 4; i < ilen; i += 1) {
+                    var key = ["family", "given", "alternate"][i];
                     state.nameOutput[key] = this[key];
                 }
                 state.nameOutput["with"] = this["with"];

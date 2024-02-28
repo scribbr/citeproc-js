@@ -646,7 +646,7 @@ var CSL = {
     DATE_PARTS_ALL: ["year", "month", "day", "season"],
     DATE_PARTS_INTERNAL: ["year", "month", "day", "year_end", "month_end", "day_end"],
 
-    NAME_PARTS: ["non-dropping-particle", "family", "given", "dropping-particle", "suffix", "literal"],
+    NAME_PARTS: ["non-dropping-particle", "family", "given", "dropping-particle", "suffix", "literal", "alternate"],
 
     DISAMBIGUATE_OPTIONS: [
         "disambiguate-add-names",
@@ -11950,6 +11950,19 @@ CSL.NameOutput.prototype.outputNames = function () {
         this.given_decor = false;
     }
 
+    if (this.alternate) {
+        this.alternate_decor = CSL.Util.cloneToken(this.alternate);
+        this.alternate_decor.strings.prefix = "";
+        this.alternate_decor.strings.suffix = "";
+        // Sets text-case value (text-case="title" is suppressed for items
+        // non-English with non-English value in Item.language)
+        for (i = 0, ilen = this.alternate.execs.length; i < ilen; i += 1) {
+            this.alternate.execs[i].call(this.alternate_decor, this.state, this.Item);
+        }
+    } else {
+        this.alternate_decor = false;
+    }
+
     //SNIP-START
     if (this.debug) {
         this.state.sys.print("(2)");
@@ -13764,6 +13777,7 @@ CSL.NameOutput.prototype._renderOnePersonalName = function (value, pos, i, j) {
     var name = value;
     var dropping_particle = this._droppingParticle(name, pos, j);
     var family = this._familyName(name);
+    var alternate = this._alternate(name);
     var non_dropping_particle = this._nonDroppingParticle(name);
     var givenInfo = this._givenName(name, pos, i);
     var given = givenInfo.blob;
@@ -13771,6 +13785,7 @@ CSL.NameOutput.prototype._renderOnePersonalName = function (value, pos, i, j) {
     if (given === false) {
         dropping_particle = false;
         suffix = false;
+        alternate = false;
     }
     var sort_sep = this.state.inheritOpt(this.name, "sort-separator");
     if (!sort_sep) {
@@ -13926,6 +13941,15 @@ CSL.NameOutput.prototype._renderOnePersonalName = function (value, pos, i, j) {
         }
         blob = this._join([given, second], (name["comma-dropping-particle"] + space));
     }
+
+    if (alternate) {
+      alternate.strings.prefix = this.alternate?.strings.prefix || "[";
+      alternate.strings.suffix = this.alternate?.strings.suffix || "]";
+      blob = this._join([blob, alternate], " ");
+    }
+
+
+
     // XXX Just generally assume for the present that personal names render something
     this.state.tmp.group_context.tip.variable_success = true;
     this.state.tmp.can_substitute.replace(false, CSL.LITERAL);
@@ -13962,7 +13986,8 @@ CSL.NameOutput.prototype._normalizeNameInput = function (value) {
         "parse-names":value["parse-names"],
         "comma-dropping-particle": "",
         block_initialize:value.block_initialize,
-        multi:value.multi
+        multi:value.multi,
+        alternate:value.alternate
     };
     this._parseName(name);
     return name;
@@ -13985,6 +14010,14 @@ CSL.NameOutput.prototype._stripPeriods = function (tokname, str) {
         }
     }
     return str;
+};
+
+CSL.NameOutput.prototype._alternate = function (name) {
+    var str = this._stripPeriods("alternate", name.alternate);
+    if (this.state.output.append(str, this.alternate_decor, true)) {
+        return this.state.output.pop();
+    }
+    return false;
 };
 
 CSL.NameOutput.prototype._nonDroppingParticle = function (name) {
@@ -14280,7 +14313,8 @@ CSL.NameOutput.prototype.getName = function (name, slotLocaleset, fallback, stop
         block_initialize: name_params["block-initialize"],
         literal:name.literal,
         isInstitution:name.isInstitution,
-        multi:name.multi
+        multi:name.multi,
+        alternate:name.alternate
     };
     
     if (!name.literal && (!name.given && name.family && name.isInstitution)) {
@@ -14949,8 +14983,8 @@ CSL.Node.names = {
 
             // Set/reset name blobs if they exist, for processing
             // by namesOutput()
-            for (var i = 0, ilen = 3; i < ilen; i += 1) {
-                var key = ["family", "given", "et-al"][i];
+            for (var i = 0, ilen = 4; i < ilen; i += 1) {
+                var key = ["family", "given", "et-al", "alternate"][i];
                 this[key] = state.build[key];
                 if (state.build.names_level === 1) {
                     state.build[key] = undefined;
@@ -15009,8 +15043,8 @@ CSL.Node.names = {
                 // after the term (possibly changed in cs:et-al) is known.
 
 
-                for (var i = 0, ilen = 3; i < ilen; i += 1) {
-                    var key = ["family", "given"][i];
+                for (var i = 0, ilen = 4; i < ilen; i += 1) {
+                    var key = ["family", "given", "alternate"][i];
                     state.nameOutput[key] = this[key];
                 }
                 state.nameOutput["with"] = this["with"];

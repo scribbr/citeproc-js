@@ -435,6 +435,7 @@ CSL.NameOutput.prototype._renderOnePersonalName = function (value, pos, i, j) {
     var name = value;
     var dropping_particle = this._droppingParticle(name, pos, j);
     var family = this._familyName(name);
+    var alternate = this._alternate(name);
     var non_dropping_particle = this._nonDroppingParticle(name);
     var givenInfo = this._givenName(name, pos, i);
     var given = givenInfo.blob;
@@ -442,6 +443,7 @@ CSL.NameOutput.prototype._renderOnePersonalName = function (value, pos, i, j) {
     if (given === false) {
         dropping_particle = false;
         suffix = false;
+        alternate = false;
     }
     var sort_sep = this.state.inheritOpt(this.name, "sort-separator");
     if (!sort_sep) {
@@ -597,6 +599,15 @@ CSL.NameOutput.prototype._renderOnePersonalName = function (value, pos, i, j) {
         }
         blob = this._join([given, second], (name["comma-dropping-particle"] + space));
     }
+
+    if (alternate) {
+      alternate.strings.prefix = this.alternate?.strings.prefix || "[";
+      alternate.strings.suffix = this.alternate?.strings.suffix || "]";
+      blob = this._join([blob, alternate], " ");
+    }
+
+
+
     // XXX Just generally assume for the present that personal names render something
     this.state.tmp.group_context.tip.variable_success = true;
     this.state.tmp.can_substitute.replace(false, CSL.LITERAL);
@@ -633,7 +644,8 @@ CSL.NameOutput.prototype._normalizeNameInput = function (value) {
         "parse-names":value["parse-names"],
         "comma-dropping-particle": "",
         block_initialize:value.block_initialize,
-        multi:value.multi
+        multi:value.multi,
+        alternate:value.alternate
     };
     this._parseName(name);
     return name;
@@ -656,6 +668,14 @@ CSL.NameOutput.prototype._stripPeriods = function (tokname, str) {
         }
     }
     return str;
+};
+
+CSL.NameOutput.prototype._alternate = function (name) {
+    var str = this._stripPeriods("alternate", name.alternate);
+    if (this.state.output.append(str, this.alternate_decor, true)) {
+        return this.state.output.pop();
+    }
+    return false;
 };
 
 CSL.NameOutput.prototype._nonDroppingParticle = function (name) {
@@ -951,7 +971,8 @@ CSL.NameOutput.prototype.getName = function (name, slotLocaleset, fallback, stop
         block_initialize: name_params["block-initialize"],
         literal:name.literal,
         isInstitution:name.isInstitution,
-        multi:name.multi
+        multi:name.multi,
+        alternate:name.alternate
     };
     
     if (!name.literal && (!name.given && name.family && name.isInstitution)) {

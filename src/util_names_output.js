@@ -159,6 +159,19 @@ CSL.NameOutput.prototype.outputNames = function () {
         this.given_decor = false;
     }
 
+    if (this.alternate) {
+        this.alternate_decor = CSL.Util.cloneToken(this.alternate);
+        this.alternate_decor.strings.prefix = "";
+        this.alternate_decor.strings.suffix = "";
+        // Sets text-case value (text-case="title" is suppressed for items
+        // non-English with non-English value in Item.language)
+        for (i = 0, ilen = this.alternate.execs.length; i < ilen; i += 1) {
+            this.alternate.execs[i].call(this.alternate_decor, this.state, this.Item);
+        }
+    } else {
+        this.alternate_decor = false;
+    }
+
     //SNIP-START
     if (this.debug) {
         this.state.sys.print("(2)");

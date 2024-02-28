@@ -622,7 +622,7 @@ var CSL = {
     DATE_PARTS_ALL: ["year", "month", "day", "season"],
     DATE_PARTS_INTERNAL: ["year", "month", "day", "year_end", "month_end", "day_end"],
 
-    NAME_PARTS: ["non-dropping-particle", "family", "given", "dropping-particle", "suffix", "literal"],
+    NAME_PARTS: ["non-dropping-particle", "family", "given", "dropping-particle", "suffix", "literal", "alternate"],
 
     DISAMBIGUATE_OPTIONS: [
         "disambiguate-add-names",
