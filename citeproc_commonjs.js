@@ -748,7 +748,8 @@ var CSL = {
         "script-writer",
         "series-creator",
         "translator",
-        "commenter"
+        "commenter",
+        "uploader"
     ],
     CREATORS: [
         "author",
@@ -778,7 +779,8 @@ var CSL = {
         "script-writer",
         "series-creator",
         "translator",
-        "commenter"
+        "commenter",
+        "uploader"
     ],
     NUMERIC_VARIABLES: [
         "call-number",
